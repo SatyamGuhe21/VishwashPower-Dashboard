@@ -7,8 +7,11 @@ const FormStage = ({ stage, stageData, onStageComplete, onApproval, isETCAdmin, 
   const [formData, setFormData] = useState({})
 
   useEffect(() => {
-    setCurrentForm(stageData.completed + 1)
-  }, [stageData.completed])
+    // Only allow progression through forms if not all completed yet
+    if (stageData.completed < stageData.total) {
+      setCurrentForm(stageData.completed + 1)
+    }
+  }, [stageData.completed, stageData.total])
 
   const getFormsForStage = (stageNumber) => {
     switch (stageNumber) {
@@ -55,18 +58,16 @@ const FormStage = ({ stage, stageData, onStageComplete, onApproval, isETCAdmin, 
 
   const forms = getFormsForStage(stage)
   const isFormCompleted = (formIndex) => formIndex <= stageData.completed
-  const isCurrentFormActive = currentForm <= stageData.completed + 1 && !stageData.approved
+  const isCurrentFormActive =
+    currentForm <= stageData.total && stageData.completed < stageData.total && !stageData.approved
   const allFormsCompleted = stageData.completed === stageData.total
   const isPendingApproval = allFormsCompleted && !stageData.approved && stageData.status === "pending-approval"
 
   const handleFormSubmit = () => {
-    if (currentForm === stageData.total) {
-      onStageComplete()
-      alert("All forms completed! Sent for ETC Admin approval.")
-    } else {
-      setCurrentForm(currentForm + 1)
+    try {
+      const newCompletedCount = stageData.completed + 1
 
-      // Update company progress in localStorage
+      // Update company progress in localStorage immediately
       const savedCompanies = localStorage.getItem("companies")
       if (savedCompanies) {
         const companies = JSON.parse(savedCompanies)
@@ -74,8 +75,10 @@ const FormStage = ({ stage, stageData, onStageComplete, onApproval, isETCAdmin, 
           if (c.id === company.id) {
             return {
               ...c,
-              formsCompleted: currentForm,
+              formsCompleted: newCompletedCount,
               lastActivity: new Date().toISOString().split("T")[0],
+              // Only set to pending-approval when ALL forms in stage are completed
+              status: newCompletedCount === stageData.total ? "pending-approval" : "in-progress",
             }
           }
           return c
@@ -83,12 +86,31 @@ const FormStage = ({ stage, stageData, onStageComplete, onApproval, isETCAdmin, 
         localStorage.setItem("companies", JSON.stringify(updatedCompanies))
       }
 
-      alert(`Form ${currentForm} completed successfully!`)
+      // Check if this is the last form in the stage
+      if (newCompletedCount === stageData.total) {
+        // All forms completed - send entire stage for approval
+        onStageComplete()
+        alert(`🎉 All ${stageData.total} forms in Stage ${stage} completed! Sent for ETC Admin approval.`)
+      } else {
+        // Move to next form
+        setCurrentForm(currentForm + 1)
+        alert(
+          `✅ Form ${currentForm} completed successfully! (${newCompletedCount}/${stageData.total} forms completed)`,
+        )
+      }
+    } catch (err) {
+      console.error("Form submission error:", err)
+      alert("❌ Error submitting form. Please try again.")
     }
   }
 
   const handleApprovalAction = (approved) => {
-    onApproval(approved)
+    try {
+      onApproval(approved)
+    } catch (err) {
+      console.error("Approval action error:", err)
+      alert("❌ Error processing approval. Please try again.")
+    }
   }
 
   return (
@@ -118,14 +140,31 @@ const FormStage = ({ stage, stageData, onStageComplete, onApproval, isETCAdmin, 
         </div>
       </div>
 
+      {/* Stage Completion Status */}
+      {allFormsCompleted && !isPendingApproval && !stageData.approved && (
+        <div className="completion-notice">
+          <div className="logo-container">
+            <img src="/logo.png" alt="Vishvas Power" className="logo-small" />
+          </div>
+          <div className="notice-content">
+            <h4>🎯 Stage {stage} Ready for Submission</h4>
+            <p>All {stageData.total} forms have been completed. Click below to submit the entire stage for approval.</p>
+            <button onClick={() => onStageComplete()} className="submit-stage-btn">
+              📤 Submit Stage {stage} for Approval
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Forms List */}
       <div className="forms-list">
         <div className="logo-container">
-          {/* EASY LOGO REPLACEMENT - Just replace the src path */}
           <img src="/logo.png" alt="Vishvas Power" className="logo-small" />
         </div>
-        <h4>📋 Forms Checklist</h4>
-        <p>Complete each form in sequence to progress through the stage</p>
+        <h4>
+          📋 Stage {stage} Forms Checklist ({stageData.completed}/{stageData.total} completed)
+        </h4>
+        <p>Complete all forms in this stage before submission for approval</p>
         <div className="forms-grid">
           {forms.map((formName, index) => {
             const formNumber = index + 1
@@ -159,17 +198,18 @@ const FormStage = ({ stage, stageData, onStageComplete, onApproval, isETCAdmin, 
         </div>
       </div>
 
-      {/* Current Form */}
+      {/* Current Form - Only show if not all forms completed */}
       {isCurrentFormActive && !allFormsCompleted && (
         <div className="current-form">
           <div className="logo-container">
-            {/* EASY LOGO REPLACEMENT - Just replace the src path */}
             <img src="/logo.png" alt="Vishvas Power" className="logo-small" />
           </div>
           <h4>
             📝 Form {currentForm}: {forms[currentForm - 1]}
           </h4>
-          <p>Fill out the required information for this form</p>
+          <p>
+            Fill out the required information for this form ({currentForm}/{stageData.total})
+          </p>
           <div className="form-fields">
             <div className="form-group">
               <label>📄 Document Reference</label>
@@ -214,26 +254,39 @@ const FormStage = ({ stage, stageData, onStageComplete, onApproval, isETCAdmin, 
             </div>
           </div>
           <button onClick={handleFormSubmit} className="submit-btn">
-            {currentForm === stageData.total ? "📤 Submit for Approval" : "✅ Complete Form"}
+            {currentForm === stageData.total
+              ? `📤 Complete Final Form & Submit Stage ${stage}`
+              : `✅ Complete Form ${currentForm}`}
           </button>
         </div>
       )}
 
-      {/* Approval Section */}
+      {/* Approval Section - Only show when all forms completed and pending approval */}
       {isPendingApproval && (
         <div className="approval-section">
           <div className="approval-card pending">
             <div className="logo-container">
-              {/* EASY LOGO REPLACEMENT - Just replace the src path */}
               <img src="/logo.png" alt="Vishvas Power" className="logo-small" />
             </div>
             <div className="approval-icon">⏳</div>
-            <h4>Pending ETC Admin Approval</h4>
-            <p>All forms have been completed and are awaiting approval from ETC Admin</p>
+            <h4>Stage {stage} Pending ETC Admin Approval</h4>
+            <p>All {stageData.total} forms have been completed and submitted for approval</p>
+            <div className="approval-details">
+              <div className="approval-stat">
+                <span className="stat-label">Forms Submitted:</span>
+                <span className="stat-value">
+                  {stageData.total}/{stageData.total}
+                </span>
+              </div>
+              <div className="approval-stat">
+                <span className="stat-label">Submission Date:</span>
+                <span className="stat-value">{new Date().toLocaleDateString()}</span>
+              </div>
+            </div>
             {isETCAdmin && (
               <div className="approval-actions">
                 <button onClick={() => handleApprovalAction(true)} className="approve-btn">
-                  ✅ Approve Stage
+                  ✅ Approve Stage {stage}
                 </button>
                 <button onClick={() => handleApprovalAction(false)} className="reject-btn">
                   ❌ Request Changes
@@ -250,12 +303,15 @@ const FormStage = ({ stage, stageData, onStageComplete, onApproval, isETCAdmin, 
         <div className="approval-section">
           <div className="approval-card completed">
             <div className="logo-container">
-              {/* EASY LOGO REPLACEMENT - Just replace the src path */}
               <img src="/logo.png" alt="Vishvas Power" className="logo-small" />
             </div>
             <div className="approval-icon">🎉</div>
-            <h4>Stage {stage} Completed!</h4>
-            <p>All forms have been completed and approved. You can now proceed to the next stage.</p>
+            <h4>Stage {stage} Approved!</h4>
+            <p>All {stageData.total} forms have been completed and approved by ETC Admin.</p>
+            {stage < 3 && <p className="next-stage-info">✨ You can now proceed to Stage {stage + 1}.</p>}
+            {stage === 3 && (
+              <p className="final-completion">🏆 Congratulations! All workflow stages completed successfully!</p>
+            )}
           </div>
         </div>
       )}

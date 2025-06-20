@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react"
 
 const MainAdminDashboard = ({ user, onLogout, onSelectAdmin }) => {
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
   const [departments, setDepartments] = useState([])
   const [newDepartment, setNewDepartment] = useState("")
   const [departmentError, setDepartmentError] = useState("")
@@ -134,22 +135,54 @@ const MainAdminDashboard = ({ user, onLogout, onSelectAdmin }) => {
 
   return (
     <div className="dashboard-container">
-      <header className="dashboard-header">
+            <header className="dashboard-header">
         <div className="header-content">
           <div className="header-left">
+            {/* Mobile menu toggle button */}
+            <button className="mobile-menu-toggle" onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}>
+              <span className="hamburger-line"></span>
+              <span className="hamburger-line"></span>
+              <span className="hamburger-line"></span>
+            </button>
+
             {/* EASY LOGO REPLACEMENT - Just replace the src path */}
             <img src="/logo.png" alt="Vishvas Power" className="logo" />
-            <div>
+            <div className="header-title">
               <h1>Main Admin Dashboard</h1>
               <p>Welcome back, {user.name}</p>
             </div>
           </div>
-          <div className="header-right">
+
+          {/* Desktop header right */}
+          <div className="header-right desktop-only">
             <span className="user-badge online">🟢 Online</span>
             <button onClick={onLogout} className="logout-btn">
               🚪 Logout
             </button>
           </div>
+
+          {/* Mobile menu overlay */}
+          {isMobileMenuOpen && (
+            <div className="mobile-menu-overlay" onClick={() => setIsMobileMenuOpen(false)}>
+              <div className="mobile-menu" onClick={(e) => e.stopPropagation()}>
+                <div className="mobile-menu-header">
+                  <img src="/logo.png" alt="Vishvas Power" className="logo-small" />
+                  <button className="mobile-menu-close" onClick={() => setIsMobileMenuOpen(false)}>
+                    ×
+                  </button>
+                </div>
+                <div className="mobile-menu-content">
+                  <div className="mobile-user-info">
+                    <span className="user-badge online">🟢 Online</span>
+                    <p>Welcome back, {user.name}</p>
+                  </div>
+                  <button onClick={onLogout} className="mobile-logout-btn">
+                    🚪 Logout
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       </header>
 

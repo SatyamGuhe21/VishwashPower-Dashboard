@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react"
 
 const ETCAdminPanel = ({ user, selectedProject, onLogout, onProjectSelect, onCompanySelect, onBackToMain }) => {
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
   const [projects, setProjects] = useState([])
   const [companies, setCompanies] = useState([])
   const [newProject, setNewProject] = useState({ name: "", description: "" })
@@ -206,29 +207,60 @@ const ETCAdminPanel = ({ user, selectedProject, onLogout, onProjectSelect, onCom
 
   return (
     <div className="dashboard-container">
-      <header className="etc-header">
-        <div className="header-content">
-          <div className="header-left">
-            {user?.role === "main-admin" && (
-              <button onClick={onBackToMain} className="back-btn">
-                ← Back
-              </button>
-            )}
-            {/* EASY LOGO REPLACEMENT - Just replace the src path */}
-            <img src="/logo.png" alt="Vishvas Power" className="logo" />
-            <div>
-              <h1>{selectedProject ? `${selectedProject.name} - Companies` : "ETC Admin Panel"}</h1>
-              <p>{selectedProject ? "Manage companies and workflows" : "Manage projects and companies"}</p>
-            </div>
-          </div>
-          <div className="header-right">
-            <span className="user-badge">ETC Admin</span>
-            <button onClick={onLogout} className="logout-btn">
-              🚪 Logout
+       <header className="etc-header">
+      <div className="header-content">
+        <div className="header-left">
+          {user?.role === "main-admin" && (
+            <button onClick={onBackToMain} className="back-btn">
+              ← Back
             </button>
+          )}
+          {/* Mobile menu toggle button */}
+          <button className="mobile-menu-toggle" onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}>
+            <span className="hamburger-line"></span>
+            <span className="hamburger-line"></span>
+            <span className="hamburger-line"></span>
+          </button>
+
+          {/* EASY LOGO REPLACEMENT - Just replace the src path */}
+          <img src="/logo.png" alt="Vishvas Power" className="logo" />
+          <div className="header-title">
+            <h1>{selectedProject ? `${selectedProject.name} - Companies` : "ETC Admin Panel"}</h1>
+            <p>{selectedProject ? "Manage companies and workflows" : "Manage projects and companies"}</p>
           </div>
         </div>
-      </header>
+
+        {/* Desktop header right */}
+        <div className="header-right desktop-only">
+          <span className="user-badge">ETC Admin</span>
+          <button onClick={onLogout} className="logout-btn">
+            🚪 Logout
+          </button>
+        </div>
+
+        {/* Mobile menu overlay */}
+        {isMobileMenuOpen && (
+          <div className="mobile-menu-overlay" onClick={() => setIsMobileMenuOpen(false)}>
+            <div className="mobile-menu" onClick={(e) => e.stopPropagation()}>
+              <div className="mobile-menu-header">
+                <img src="/logo.png" alt="Vishvas Power" className="logo-small" />
+                <button className="mobile-menu-close" onClick={() => setIsMobileMenuOpen(false)}>
+                  ×
+                </button>
+              </div>
+              <div className="mobile-menu-content">
+                <div className="mobile-user-info">
+                  <span className="user-badge">ETC Admin</span>
+                </div>
+                <button onClick={onLogout} className="mobile-logout-btn">
+                  🚪 Logout
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+    </header>
 
       <main className="etc-main">
         {!selectedProject ? (

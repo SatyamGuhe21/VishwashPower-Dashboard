@@ -8,7 +8,7 @@ import MainAdminDashboard from "./components/MainAdminDashboard"
 import ETCAdminPanel from "./components/ETCAdminPanel"
 import CompanyWorkflow from "./components/CompanyWorkflow"
 
-function App() {
+const App = () => {
   const [currentView, setCurrentView] = useState("login")
   const [user, setUser] = useState(null)
   const [selectedProject, setSelectedProject] = useState(null)
@@ -113,6 +113,26 @@ function App() {
     setCurrentView("main-dashboard")
   }
 
+  // New function to handle navigation to admin departments after workflow completion
+  const handleNavigateToAdmin = (adminType) => {
+    // Clear the selected company since workflow is completed
+    setSelectedCompany(null)
+    localStorage.removeItem("selectedCompany")
+
+    if (adminType === "etc") {
+      setCurrentView("etc-panel")
+    } else if (adminType === "main") {
+      setCurrentView("main-dashboard")
+    }
+    // Add more admin types as needed
+    // else if (adminType === "finance") {
+    //   setCurrentView("finance-panel")
+    // }
+    // else if (adminType === "hr") {
+    //   setCurrentView("hr-panel")
+    // }
+  }
+
   return (
     <div className="App">
       {currentView === "login" && (
@@ -153,6 +173,7 @@ function App() {
           user={user}
           onBack={handleBackToETC}
           onLogout={handleLogout}
+          onNavigateToAdmin={handleNavigateToAdmin}
         />
       )}
     </div>

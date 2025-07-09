@@ -5,11 +5,12 @@ import FormStage from "./FormStage"
 
 const CompanyWorkflow = ({ company, project, user, onBack, onLogout, onNavigateToAdmin }) => {
   const [currentStage, setCurrentStage] = useState(1)
-   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
   const [stageData, setStageData] = useState({
-    1: { completed: 0, total: 17, status: "in-progress", approved: false },
-    2: { completed: 0, total: 5, status: "locked", approved: false },
-    3: { completed: 0, total: 5, status: "locked", approved: false },
+    1: { completed: 0, total: 7, status: "in-progress", approved: false },
+    2: { completed: 0, total: 2, status: "locked", approved: false },
+    3: { completed: 0, total: 4, status: "locked", approved: false },
+    4: { completed: 0, total: 4, status: "locked", approved: false },
+    5: { completed: 0, total: 2, status: "locked", approved: false },
   })
 
   const [isCompleted, setIsCompleted] = useState(false)
@@ -19,15 +20,17 @@ const CompanyWorkflow = ({ company, project, user, onBack, onLogout, onNavigateT
   // Initialize default stage data
   const initializeStageData = () => {
     return {
-      1: { completed: 0, total: 17, status: "in-progress", approved: false },
-      2: { completed: 0, total: 5, status: "locked", approved: false },
-      3: { completed: 0, total: 5, status: "locked", approved: false },
+      1: { completed: 0, total: 7, status: "in-progress", approved: false },
+      2: { completed: 0, total: 2, status: "locked", approved: false },
+      3: { completed: 0, total: 4, status: "locked", approved: false },
+      4: { completed: 0, total: 4, status: "locked", approved: false },
+      5: { completed: 0, total: 2, status: "locked", approved: false },
     }
   }
 
   // Check if all stages are completed
   const checkAllStagesCompleted = (stages) => {
-    return stages[1].approved && stages[2].approved && stages[3].approved
+    return stages[1].approved && stages[2].approved && stages[3].approved && stages[4].approved && stages[5].approved
   }
 
   // Load company data from localStorage
@@ -56,15 +59,15 @@ const CompanyWorkflow = ({ company, project, user, onBack, onLogout, onNavigateT
             // Initialize stage data based on company progress
             const newStageData = {
               1: {
-                completed: currentCompany.stage === 1 ? currentCompany.formsCompleted || 0 : 17,
-                total: 17,
+                completed: currentCompany.stage === 1 ? currentCompany.formsCompleted || 0 : 7,
+                total: 7,
                 status: currentCompany.stage > 1 ? "completed" : currentCompany.status || "in-progress",
                 approved: currentCompany.stageApprovals?.["1"] || false,
               },
               2: {
                 completed:
-                  currentCompany.stage === 2 ? currentCompany.formsCompleted || 0 : currentCompany.stage > 2 ? 5 : 0,
-                total: 5,
+                  currentCompany.stage === 2 ? currentCompany.formsCompleted || 0 : currentCompany.stage > 2 ? 2 : 0,
+                total: 2,
                 status:
                   currentCompany.stage > 2
                     ? "completed"
@@ -74,10 +77,34 @@ const CompanyWorkflow = ({ company, project, user, onBack, onLogout, onNavigateT
                 approved: currentCompany.stageApprovals?.["2"] || false,
               },
               3: {
-                completed: currentCompany.stage === 3 ? currentCompany.formsCompleted || 0 : 0,
-                total: 5,
-                status: currentCompany.stage === 3 ? currentCompany.status || "in-progress" : "locked",
+                completed:
+                  currentCompany.stage === 3 ? currentCompany.formsCompleted || 0 : currentCompany.stage > 3 ? 4 : 0,
+                total: 4,
+                status:
+                  currentCompany.stage > 3
+                    ? "completed"
+                    : currentCompany.stage === 3
+                      ? currentCompany.status || "in-progress"
+                      : "locked",
                 approved: currentCompany.stageApprovals?.["3"] || false,
+              },
+              4: {
+                completed:
+                  currentCompany.stage === 4 ? currentCompany.formsCompleted || 0 : currentCompany.stage > 4 ? 4 : 0,
+                total: 4,
+                status:
+                  currentCompany.stage > 4
+                    ? "completed"
+                    : currentCompany.stage === 4
+                      ? currentCompany.status || "in-progress"
+                      : "locked",
+                approved: currentCompany.stageApprovals?.["4"] || false,
+              },
+              5: {
+                completed: currentCompany.stage === 5 ? currentCompany.formsCompleted || 0 : 0,
+                total: 2,
+                status: currentCompany.stage === 5 ? currentCompany.status || "in-progress" : "locked",
+                approved: currentCompany.stageApprovals?.["5"] || false,
               },
             }
             setStageData(newStageData)
@@ -112,22 +139,36 @@ const CompanyWorkflow = ({ company, project, user, onBack, onLogout, onNavigateT
     {
       id: 1,
       name: "Initial Documentation",
-      description: "Complete all 17 required initial forms and documentation",
-      forms: 17,
+      description: "Complete all 7 required initial forms and documentation",
+      forms: 7,
       icon: "📋",
     },
     {
       id: 2,
-      name: "Technical Review",
-      description: "Complete all 5 technical specifications and compliance forms",
-      forms: 5,
-      icon: "🔧",
+      name: "Circuit Testing",
+      description: "Complete all 2 circuit testing and filtration forms",
+      forms: 2,
+      icon: "⚡",
     },
     {
       id: 3,
-      name: "Final Approval",
-      description: "Complete all 5 final review and approval documentation forms",
-      forms: 5,
+      name: "Advanced Testing",
+      description: "Complete all 4 advanced testing and measurement forms",
+      forms: 4,
+      icon: "🔬",
+    },
+    {
+      id: 4,
+      name: "Final Verification",
+      description: "Complete all 4 final verification and completion forms",
+      forms: 4,
+      icon: "✅",
+    },
+    {
+      id: 5,
+      name: "Quality Assurance",
+      description: "Complete all 2 quality assurance and assembly forms",
+      forms: 2,
       icon: "🏆",
     },
   ]
@@ -173,7 +214,7 @@ const CompanyWorkflow = ({ company, project, user, onBack, onLogout, onNavigateT
           }
 
           // Unlock next stage if not the final stage
-          if (stageId < 3) {
+          if (stageId < 5) {
             newData[stageId + 1] = {
               ...newData[stageId + 1],
               status: "in-progress",
@@ -191,12 +232,12 @@ const CompanyWorkflow = ({ company, project, user, onBack, onLogout, onNavigateT
         })
 
         // Update company stage and approval status
-        const nextStage = stageId < 3 ? stageId + 1 : stageId
-        const finalStatus = stageId === 3 ? "fully-completed" : stageId < 3 ? "in-progress" : "completed"
+        const nextStage = stageId < 5 ? stageId + 1 : stageId
+        const finalStatus = stageId === 5 ? "fully-completed" : stageId < 5 ? "in-progress" : "completed"
 
         updateCompanyInStorage(nextStage, 0, finalStatus, { [stageId]: true })
 
-        if (stageId === 3) {
+        if (stageId === 5) {
           // Final completion - show success message
           setTimeout(() => {
             alert("🎉 Congratulations! All stages completed successfully! You can now access the admin panel.")
@@ -353,60 +394,26 @@ const CompanyWorkflow = ({ company, project, user, onBack, onLogout, onNavigateT
 
   return (
     <div className="dashboard-container">
-       <header className="workflow-header">
-      <div className="header-content">
-        <div className="header-left">
-          <button onClick={onBack} className="back-btn">
-            ← Back
-          </button>
-
-          {/* Mobile menu toggle button */}
-          <button className="mobile-menu-toggle" onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}>
-            <span className="hamburger-line"></span>
-            <span className="hamburger-line"></span>
-            <span className="hamburger-line"></span>
-          </button>
-
-          <img src="/logo.png" alt="Vishvas Power" className="logo" />
-          <div className="header-title">
-            <h1>{company.name}</h1>
-            <p>{project?.name || "Project"} - Workflow Management</p>
-          </div>
-        </div>
-
-        {/* Desktop header right */}
-        <div className="header-right desktop-only">
-          <span className="user-badge">{user?.role === "etc-admin" ? "ETC Admin" : "Company Admin"}</span>
-          <button onClick={onLogout} className="logout-btn">
-            🚪 Logout
-          </button>
-        </div>
-
-        {/* Mobile menu overlay */}
-        {isMobileMenuOpen && (
-          <div className="mobile-menu-overlay" onClick={() => setIsMobileMenuOpen(false)}>
-            <div className="mobile-menu" onClick={(e) => e.stopPropagation()}>
-              <div className="mobile-menu-header">
-                <img src="/logo.png" alt="Vishvas Power" className="logo-small" />
-                <button className="mobile-menu-close" onClick={() => setIsMobileMenuOpen(false)}>
-                  ×
-                </button>
-              </div>
-              <div className="mobile-menu-content">
-                <div className="mobile-user-info">
-                  <span className="user-badge">{user?.role === "etc-admin" ? "ETC Admin" : "Company Admin"}</span>
-                  <p>{company.name}</p>
-                  <p>{project?.name || "Project"} - Workflow Management</p>
-                </div>
-                <button onClick={onLogout} className="mobile-logout-btn">
-                  🚪 Logout
-                </button>
-              </div>
+      <header className="workflow-header">
+        <div className="header-content">
+          <div className="header-left">
+            <button onClick={onBack} className="back-btn">
+              ← Back
+            </button>
+            <img src="/logo.png" alt="Vishvas Power" className="logo" />
+            <div>
+              <h1>{company.name}</h1>
+              <p>{project?.name || "Project"} - Workflow Management</p>
             </div>
           </div>
-        )}
-      </div>
-    </header>
+          <div className="header-right">
+            <span className="user-badge">{user?.role === "etc-admin" ? "ETC Admin" : "Company Admin"}</span>
+            <button onClick={onLogout} className="logout-btn">
+              🚪 Logout
+            </button>
+          </div>
+        </div>
+      </header>
 
       {/* Completion Overlay - This shows when all stages are completed */}
       {isCompleted && (
@@ -421,11 +428,11 @@ const CompanyWorkflow = ({ company, project, user, onBack, onLogout, onNavigateT
               <p>All stages have been completed and approved for {company.name}</p>
               <div className="completion-stats">
                 <div className="stat">
-                  <span className="stat-number">27</span>
+                  <span className="stat-number">19</span>
                   <span className="stat-label">Total Forms Completed</span>
                 </div>
                 <div className="stat">
-                  <span className="stat-number">3</span>
+                  <span className="stat-number">5</span>
                   <span className="stat-label">Stages Approved</span>
                 </div>
                 <div className="stat">
@@ -477,21 +484,33 @@ const CompanyWorkflow = ({ company, project, user, onBack, onLogout, onNavigateT
           </div>
           <div className="progress-details">
             <div className="progress-stage">
-              <span>Stage 1: {stageData[1]?.completed || 0}/17 forms</span>
+              <span>Stage 1: {stageData[1]?.completed || 0}/7 forms</span>
               <span className={`stage-status ${getStageStatus(1)}`}>
                 {stageData[1]?.approved ? "✅ Approved" : getStageStatus(1)}
               </span>
             </div>
             <div className="progress-stage">
-              <span>Stage 2: {stageData[2]?.completed || 0}/5 forms</span>
+              <span>Stage 2: {stageData[2]?.completed || 0}/2 forms</span>
               <span className={`stage-status ${getStageStatus(2)}`}>
                 {stageData[2]?.approved ? "✅ Approved" : getStageStatus(2)}
               </span>
             </div>
             <div className="progress-stage">
-              <span>Stage 3: {stageData[3]?.completed || 0}/5 forms</span>
+              <span>Stage 3: {stageData[3]?.completed || 0}/4 forms</span>
               <span className={`stage-status ${getStageStatus(3)}`}>
                 {stageData[3]?.approved ? "✅ Approved" : getStageStatus(3)}
+              </span>
+            </div>
+            <div className="progress-stage">
+              <span>Stage 4: {stageData[4]?.completed || 0}/4 forms</span>
+              <span className={`stage-status ${getStageStatus(4)}`}>
+                {stageData[4]?.approved ? "✅ Approved" : getStageStatus(4)}
+              </span>
+            </div>
+            <div className="progress-stage">
+              <span>Stage 5: {stageData[5]?.completed || 0}/2 forms</span>
+              <span className={`stage-status ${getStageStatus(5)}`}>
+                {stageData[5]?.approved ? "✅ Approved" : getStageStatus(5)}
               </span>
             </div>
           </div>

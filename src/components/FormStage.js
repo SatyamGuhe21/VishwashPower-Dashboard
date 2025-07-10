@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 
 const FormStage = ({ stage, stageData, onStageComplete, onApproval, isETCAdmin, company }) => {
   const [currentForm, setCurrentForm] = useState(1)
@@ -103,25 +103,6 @@ const FormStage = ({ stage, stageData, onStageComplete, onApproval, isETCAdmin, 
     }
   }
 
-  const handleSignatureUpload = (signatureType, event) => {
-    const file = event.target.files[0]
-    if (file) {
-      const reader = new FileReader()
-      reader.onload = (e) => {
-        setSignatures({
-          ...signatures,
-          [`form${currentForm}_${signatureType}`]: {
-            file: file,
-            dataUrl: e.target.result,
-            name: file.name,
-            uploadDate: new Date().toISOString(),
-          },
-        })
-      }
-      reader.readAsDataURL(file)
-    }
-  }
-
   const getFormStatus = (formIndex) => {
     if (isFormCompleted(formIndex)) {
       return "completed"
@@ -152,6 +133,174 @@ const FormStage = ({ stage, stageData, onStageComplete, onApproval, isETCAdmin, 
       default:
         return "Pending"
     }
+  }
+
+  // Digital Signature Component
+  const DigitalSignature = ({ signatureType, label }) => {
+    const canvasRef = useRef(null)
+    const [isDrawing, setIsDrawing] = useState(false)
+    const [hasSignature, setHasSignature] = useState(false)
+    const signatureKey = `form${currentForm}_${signatureType}`
+
+    // Initialize canvas and restore signature if exists
+    useEffect(() => {
+      const canvas = canvasRef.current
+      if (canvas) {
+        const ctx = canvas.getContext("2d")
+        ctx.strokeStyle = "#000000"
+        ctx.lineWidth = 2
+        ctx.lineCap = "round"
+        ctx.lineJoin = "round"
+
+        // Clear canvas first
+        ctx.clearRect(0, 0, canvas.width, canvas.height)
+
+        // Restore existing signature if available
+        if (signatures[signatureKey]) {
+          const img = new Image()
+          img.onload = () => {
+            ctx.drawImage(img, 0, 0)
+            setHasSignature(true)
+          }
+          img.src = signatures[signatureKey].dataUrl
+        } else {
+          setHasSignature(false)
+        }
+      }
+    }, [signatureKey, signatures])
+
+    const getCoordinates = (e) => {
+      const canvas = canvasRef.current
+      const rect = canvas.getBoundingClientRect()
+      const scaleX = canvas.width / rect.width
+      const scaleY = canvas.height / rect.height
+
+      let clientX, clientY
+
+      if (e.touches && e.touches[0]) {
+        clientX = e.touches[0].clientX
+        clientY = e.touches[0].clientY
+      } else {
+        clientX = e.clientX
+        clientY = e.clientY
+      }
+
+      return {
+        x: (clientX - rect.left) * scaleX,
+        y: (clientY - rect.top) * scaleY,
+      }
+    }
+
+    const startDrawing = (e) => {
+      e.preventDefault()
+      setIsDrawing(true)
+      const canvas = canvasRef.current
+      const ctx = canvas.getContext("2d")
+      const coords = getCoordinates(e)
+
+      ctx.beginPath()
+      ctx.moveTo(coords.x, coords.y)
+    }
+
+    const draw = (e) => {
+      if (!isDrawing) return
+      e.preventDefault()
+
+      const canvas = canvasRef.current
+      const ctx = canvas.getContext("2d")
+      const coords = getCoordinates(e)
+
+      ctx.lineTo(coords.x, coords.y)
+      ctx.stroke()
+
+      if (!hasSignature) {
+        setHasSignature(true)
+      }
+    }
+
+    const stopDrawing = (e) => {
+      if (!isDrawing) return
+      e.preventDefault()
+
+      setIsDrawing(false)
+      const canvas = canvasRef.current
+      const signatureData = canvas.toDataURL()
+
+      // Save signature data
+      setSignatures((prev) => ({
+        ...prev,
+        [signatureKey]: {
+          dataUrl: signatureData,
+          timestamp: new Date().toISOString(),
+          type: "digital",
+        },
+      }))
+    }
+
+    const clearSignature = () => {
+      const canvas = canvasRef.current
+      const ctx = canvas.getContext("2d")
+      ctx.clearRect(0, 0, canvas.width, canvas.height)
+      setHasSignature(false)
+
+      // Remove signature from state
+      setSignatures((prev) => {
+        const updated = { ...prev }
+        delete updated[signatureKey]
+        return updated
+      })
+    }
+
+    return (
+      <div className="digital-signature-container">
+        <label className="signature-label">{label}:</label>
+        <div className="signature-pad-container">
+          <canvas
+            ref={canvasRef}
+            width={400}
+            height={150}
+            className="signature-canvas"
+            onMouseDown={startDrawing}
+            onMouseMove={draw}
+            onMouseUp={stopDrawing}
+            onMouseLeave={stopDrawing}
+            onTouchStart={startDrawing}
+            onTouchMove={draw}
+            onTouchEnd={stopDrawing}
+            style={{
+              border: "2px solid #ccc",
+              borderRadius: "4px",
+              cursor: "crosshair",
+              backgroundColor: "#fff",
+              touchAction: "none", // Prevent scrolling on touch devices
+            }}
+          />
+          <div className="signature-controls">
+            <button
+              type="button"
+              onClick={clearSignature}
+              className="clear-signature-btn"
+              style={{
+                padding: "8px 16px",
+                backgroundColor: "#f44336",
+                color: "white",
+                border: "none",
+                borderRadius: "4px",
+                cursor: "pointer",
+                marginTop: "8px",
+              }}
+            >
+              Clear Signature
+            </button>
+            {hasSignature && (
+              <span className="signature-status" style={{ marginLeft: "10px", color: "#4CAF50" }}>
+                ✓ Signature captured
+              </span>
+            )}
+          </div>
+        </div>
+      </div>
+    )
   }
 
   // Individual Form Components
@@ -2106,50 +2255,27 @@ const FormStage = ({ stage, stageData, onStageComplete, onApproval, isETCAdmin, 
     </div>
   )
 
-  // Signature Section Component
+  // Digital Signature Section Component
   const SignatureSection = ({ label1 = "VPES", label2 = "Customer" }) => (
-    <div className="signature-section">
-      <div className="signature-row">
-        <div className="signature-group">
-          <label>{label1} Signature:</label>
-          <input
-            type="file"
-            accept="image/*"
-            onChange={(e) => handleSignatureUpload("vpes", e)}
-            className="signature-upload"
-          />
-          {signatures[`form${currentForm}_vpes`] && (
-            <div className="signature-preview">
-              <img src={signatures[`form${currentForm || "/placeholder.svg"}_vpes`].dataUrl} alt="VPES Signature" />
-              <span>{signatures[`form${currentForm}_vpes`].name}</span>
-            </div>
-          )}
-        </div>
-        <div className="signature-group">
-          <label>{label2} Signature:</label>
-          <input
-            type="file"
-            accept="image/*"
-            onChange={(e) => handleSignatureUpload("customer", e)}
-            className="signature-upload"
-          />
-          {signatures[`form${currentForm}_customer`] && (
-            <div className="signature-preview">
-              <img
-                src={signatures[`form${currentForm || "/placeholder.svg"}_customer`].dataUrl}
-                alt="Customer Signature"
-              />
-              <span>{signatures[`form${currentForm}_customer`].name}</span>
-            </div>
-          )}
-        </div>
+    <div
+      className="signature-section"
+      style={{ marginTop: "30px", padding: "20px", border: "1px solid #ddd", borderRadius: "8px" }}
+    >
+      <h4 style={{ marginBottom: "20px", textAlign: "center" }}>Digital Signatures</h4>
+      <div
+        className="signature-row"
+        style={{ display: "flex", gap: "40px", justifyContent: "space-around", flexWrap: "wrap" }}
+      >
+        <DigitalSignature signatureType="vpes" label={`${label1} Signature`} />
+        <DigitalSignature signatureType="customer" label={`${label2} Signature`} />
       </div>
-      <div className="signature-date">
-        <label>Date:</label>
+      <div className="signature-date" style={{ marginTop: "20px", textAlign: "center" }}>
+        <label style={{ marginRight: "10px", fontWeight: "bold" }}>Date:</label>
         <input
           type="date"
           value={formData[`form${currentForm}_signature_date`] || ""}
           onChange={(e) => setFormData({ ...formData, [`form${currentForm}_signature_date`]: e.target.value })}
+          style={{ padding: "8px", border: "1px solid #ccc", borderRadius: "4px" }}
         />
       </div>
     </div>

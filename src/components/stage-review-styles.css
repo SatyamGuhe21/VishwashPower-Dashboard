@@ -1,0 +1,443 @@
+/* Stage Management Styles */
+.stage-management {
+  margin-top: 20px;
+  padding: 20px;
+  background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+  border-radius: 12px;
+  border: 2px solid #e5e7eb;
+}
+
+.stage-management h4 {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--dark-text);
+  margin-bottom: 15px;
+  text-align: center;
+}
+
+.stages-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.stage-item {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 12px 8px;
+  border-radius: 10px;
+  border: 2px solid #e5e7eb;
+  background: white;
+  transition: all 0.3s ease;
+}
+
+.stage-item.approved {
+  background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%);
+  border-color: var(--success-color);
+}
+
+.stage-item.pending-approval {
+  background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
+  border-color: var(--warning-color);
+  animation: pendingPulse 2s ease-in-out infinite;
+}
+
+@keyframes pendingPulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.4);
+  }
+  50% {
+    box-shadow: 0 0 0 8px rgba(245, 158, 11, 0.1);
+  }
+}
+
+.stage-item.available {
+  background: linear-gradient(135deg, #fef2f2 0%, #fecaca 100%);
+  border-color: var(--primary-color);
+}
+
+.stage-item.locked {
+  background: #f9fafb;
+  border-color: #d1d5db;
+  opacity: 0.6;
+}
+
+.stage-number {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 0.9rem;
+  margin-bottom: 8px;
+  background: var(--accent-color);
+  color: white;
+}
+
+.stage-item.approved .stage-number {
+  background: var(--success-color);
+}
+
+.stage-item.pending-approval .stage-number {
+  background: var(--warning-color);
+}
+
+.stage-item.available .stage-number {
+  background: var(--primary-color);
+}
+
+.stage-item.locked .stage-number {
+  background: #9ca3af;
+}
+
+.stage-status-text {
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-align: center;
+  margin-bottom: 8px;
+  line-height: 1.2;
+}
+
+.review-stage-btn {
+  background: linear-gradient(135deg, var(--warning-color) 0%, #d97706 100%);
+  color: white;
+  border: none;
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.review-stage-btn:hover {
+  background: linear-gradient(135deg, #d97706 0%, #b45309 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);
+}
+
+/* Stage Review Summary */
+.stage-review-summary {
+  margin-bottom: 30px;
+}
+
+.stage-info-card {
+  background: white;
+  border-radius: 16px;
+  padding: 24px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+  border: 3px solid var(--primary-color);
+  text-align: center;
+}
+
+.stage-info-card h3 {
+  color: var(--primary-color);
+  font-size: 1.4rem;
+  font-weight: 700;
+  margin-bottom: 16px;
+}
+
+.stage-info-card p {
+  margin: 8px 0;
+  color: var(--dark-text);
+  font-size: 1rem;
+}
+
+/* Stage Approval Actions */
+.stage-approval-actions {
+  display: flex;
+  gap: 20px;
+  justify-content: center;
+  margin-top: 40px;
+  padding: 30px;
+  background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+  border-radius: 16px;
+  border: 2px solid #e5e7eb;
+}
+
+.approve-stage-btn {
+  background: linear-gradient(135deg, var(--success-color) 0%, #10b981 100%);
+  color: white;
+  border: none;
+  padding: 16px 32px;
+  border-radius: 12px;
+  font-size: 1.1rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.approve-stage-btn:hover:not(:disabled) {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  transform: translateY(-3px);
+  box-shadow: 0 12px 32px rgba(16, 185, 129, 0.4);
+}
+
+.approve-stage-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.reject-stage-btn {
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+  color: white;
+  border: none;
+  padding: 16px 32px;
+  border-radius: 12px;
+  font-size: 1.1rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.reject-stage-btn:hover {
+  background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+  transform: translateY(-3px);
+  box-shadow: 0 12px 32px rgba(239, 68, 68, 0.4);
+}
+
+/* Submitter Review Styles */
+.submitter-review-summary {
+  margin-bottom: 30px;
+}
+
+.stages-review-container {
+  display: flex;
+  flex-direction: column;
+  gap: 40px;
+}
+
+.stage-forms-section {
+  background: white;
+  border-radius: 20px;
+  padding: 30px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  border: 3px solid #e5e7eb;
+  position: relative;
+  overflow: hidden;
+}
+
+.stage-forms-section::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 6px;
+  background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+}
+
+.stage-forms-section h3 {
+  color: var(--primary-color);
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin-bottom: 25px;
+  text-align: center;
+  padding-bottom: 15px;
+  border-bottom: 2px solid #f0f0f0;
+}
+
+/* Enhanced Form Review Cards */
+.form-review-card h4 {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--dark-text);
+  margin: 0;
+}
+
+.form-review-card h5 {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--dark-text);
+  margin-bottom: 12px;
+}
+
+/* View Forms Button */
+.view-forms-btn:hover {
+  background: linear-gradient(135deg, #059669 0%, #047857 100%) !important;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(16, 185, 129, 0.3);
+}
+
+/* Responsive Design for Stage Management */
+@media (max-width: 768px) {
+  .stage-management {
+    padding: 16px;
+  }
+
+  .stages-row {
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .stage-item {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 16px;
+  }
+
+  .stage-number {
+    margin-bottom: 0;
+    margin-right: 12px;
+  }
+
+  .stage-status-text {
+    flex: 1;
+    text-align: left;
+    margin-bottom: 0;
+    margin-right: 12px;
+  }
+
+  .stage-approval-actions {
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .approve-stage-btn,
+  .reject-stage-btn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .company-actions {
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .view-forms-btn,
+  .view-btn {
+    width: 100%;
+    text-align: center;
+  }
+}
+
+@media (max-width: 480px) {
+  .stage-forms-section {
+    padding: 20px;
+  }
+
+  .stage-info-card {
+    padding: 20px;
+  }
+
+  .stage-approval-actions {
+    padding: 20px;
+  }
+
+  .approve-stage-btn,
+  .reject-stage-btn {
+    padding: 12px 20px;
+    font-size: 1rem;
+  }
+}
+
+/* Loading States for Stage Review */
+.stage-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 200px;
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+  margin: 20px 0;
+}
+
+.stage-loading-spinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid #f3f4f6;
+  border-top: 3px solid var(--primary-color);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: 16px;
+}
+
+.stage-loading-text {
+  color: var(--accent-color);
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+/* Success/Error Notifications */
+.notification-banner {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  padding: 16px 24px;
+  border-radius: 12px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-weight: 600;
+  animation: slideInRight 0.3s ease-out;
+}
+
+@keyframes slideInRight {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+.notification-banner.success {
+  background: linear-gradient(135deg, var(--success-color) 0%, #10b981 100%);
+  color: white;
+}
+
+.notification-banner.error {
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+  color: white;
+}
+
+.notification-banner.warning {
+  background: linear-gradient(135deg, var(--warning-color) 0%, #d97706 100%);
+  color: white;
+}
+
+/* Print Styles for Stage Review */
+@media print {
+  .stage-approval-actions,
+  .company-actions,
+  .review-stage-btn {
+    display: none;
+  }
+
+  .stage-forms-section {
+    break-inside: avoid;
+    margin-bottom: 30px;
+    box-shadow: none;
+    border: 2px solid #000;
+  }
+
+  .form-review-card {
+    break-inside: avoid;
+    margin-bottom: 20px;
+    box-shadow: none;
+    border: 1px solid #000;
+  }
+}

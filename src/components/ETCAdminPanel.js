@@ -4,368 +4,401 @@ import { useState, useEffect } from "react"
 
 const ETCAdminPanel = ({ user, selectedProject, onLogout, onProjectSelect, onCompanySelect, onBackToMain }) => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
-  const [projects, setProjects] = useState([])
-  const [companies, setCompanies] = useState([])
   const [departments, setDepartments] = useState([])
+  const [projects, setProjects] = useState([])
+  const [subProjects, setSubProjects] = useState([]) // New state for sub-projects
+  const [companies, setCompanies] = useState([])
+  const [submittedForms, setSubmittedForms] = useState([])
+
   const [selectedDepartment, setSelectedDepartment] = useState(null)
+  const [selectedMainProject, setSelectedMainProject] = useState(null) // Renamed selectedProject to selectedMainProject for clarity
+  const [selectedSubProject, setSelectedSubProject] = useState(null) // New state for selected sub-project
+
   const [newProject, setNewProject] = useState({ name: "", description: "" })
-  const [showCreateForm, setShowCreateForm] = useState(false)
+  const [newSubProject, setNewSubProject] = useState({ name: "", description: "" }) // New state for creating sub-projects
+  const [showCreateProjectForm, setShowCreateProjectForm] = useState(false) // Renamed for clarity
+  const [showCreateSubProjectForm, setShowCreateSubProjectForm] = useState(false) // New state for sub-project form
+
   const [searchTerm, setSearchTerm] = useState("")
   const [reviewMode, setReviewMode] = useState(false)
   const [selectedCompanyForReview, setSelectedCompanyForReview] = useState(null)
-  const [submittedForms, setSubmittedForms] = useState([])
   const [currentStageReview, setCurrentStageReview] = useState(1)
   const [showSubmitterReview, setShowSubmitterReview] = useState(false)
 
-  // Initialize departments
-  useEffect(() => {
-    const defaultDepartments = [
-      {
-        id: 1,
-        name: "Auto transformer",
-        description: "Auto transformer department for power distribution systems",
-        icon: "⚡",
-        color: "#C41E3A",
-        projects: [],
+  // Default data for initialization
+  const defaultDepartments = [
+    {
+      id: 1,
+      name: "Auto Transformer",
+      description: "Auto transformer department for power distribution systems",
+      icon: "⚡",
+      color: "#C41E3A",
+    },
+    {
+      id: 2,
+      name: "Traction Transformer",
+      description: "Traction transformer department for railway systems",
+      icon: "🚊",
+      color: "#1E3A8A",
+    },
+    {
+      id: 3,
+      name: "V Connected 63 MVA Transformer",
+      description: "V Connected 63 MVA transformer department for high voltage systems",
+      icon: "🔌",
+      color: "#047857",
+    },
+  ]
+
+  const defaultProjects = [
+    {
+      id: 101,
+      name: "Smart City Infrastructure",
+      description: "Urban development project for smart city implementation",
+      status: "active",
+      createdAt: "2024-01-15",
+      departmentId: 1,
+    },
+    {
+      id: 102,
+      name: "Railway Electrification",
+      description: "Project for electrifying railway lines",
+      status: "active",
+      createdAt: "2024-02-01",
+      departmentId: 2,
+    },
+    {
+      id: 103,
+      name: "Grid Modernization",
+      description: "Modernizing the power grid for efficiency",
+      status: "active",
+      createdAt: "2024-02-15",
+      departmentId: 3,
+    },
+  ]
+
+  const defaultSubProjects = [
+    // Sub-projects for Smart City Infrastructure (projectId: 101)
+    {
+      id: 1001,
+      name: "Phase 1 - Downtown",
+      description: "Initial phase covering downtown area",
+      status: "active",
+      createdAt: "2024-03-01",
+      projectId: 101,
+    },
+    {
+      id: 1002,
+      name: "Phase 2 - Industrial Zone",
+      description: "Second phase covering industrial zone",
+      status: "active",
+      createdAt: "2024-03-15",
+      projectId: 101,
+    },
+    // Sub-projects for Railway Electrification (projectId: 102)
+    {
+      id: 2001,
+      name: "North Line Upgrade",
+      description: "Upgrade of the northern railway line",
+      status: "active",
+      createdAt: "2024-04-01",
+      projectId: 102,
+    },
+    // Sub-projects for Grid Modernization (projectId: 103)
+    {
+      id: 3001,
+      name: "Substation A Expansion",
+      description: "Expansion of Substation A capacity",
+      status: "active",
+      createdAt: "2024-05-01",
+      projectId: 103,
+    },
+  ]
+
+  const defaultCompanies = [
+    // Companies for Phase 1 - Downtown (subProjectId: 1001)
+    {
+      id: 1,
+      name: "RVNL",
+      subProjectId: 1001,
+      stage: 1,
+      formsCompleted: 17,
+      totalForms: 17,
+      status: "pending-approval",
+      lastActivity: "2024-06-01",
+      stageApprovals: { 1: false, 2: false, 3: false },
+      submittedStages: { 1: true, 2: false, 3: false },
+    },
+    {
+      id: 2,
+      name: "Eastern Railway",
+      subProjectId: 1001,
+      stage: 1,
+      formsCompleted: 8,
+      totalForms: 17,
+      status: "in-progress",
+      lastActivity: "2024-06-02",
+      stageApprovals: { 1: false, 2: false, 3: false },
+      submittedStages: { 1: false, 2: false, 3: false },
+    },
+    {
+      id: 3,
+      name: "RS Infra",
+      subProjectId: 1001,
+      stage: 1,
+      formsCompleted: 12,
+      totalForms: 17,
+      status: "in-progress",
+      lastActivity: "2024-06-01",
+      stageApprovals: { 1: false, 2: false, 3: false },
+      submittedStages: { 1: false, 2: false, 3: false },
+    },
+    {
+      id: 4,
+      name: "Blue Star",
+      subProjectId: 1001,
+      stage: 1,
+      formsCompleted: 5,
+      totalForms: 17,
+      status: "in-progress",
+      lastActivity: "2024-06-03",
+      stageApprovals: { 1: false, 2: false, 3: false },
+      submittedStages: { 1: false, 2: false, 3: false },
+    },
+    {
+      id: 5,
+      name: "Track and Tower",
+      subProjectId: 1001,
+      stage: 1,
+      formsCompleted: 10,
+      totalForms: 17,
+      status: "in-progress",
+      lastActivity: "2024-06-04",
+      stageApprovals: { 1: false, 2: false, 3: false },
+      submittedStages: { 1: false, 2: false, 3: false },
+    },
+
+    // Companies for Phase 2 - Industrial Zone (subProjectId: 1002)
+    {
+      id: 6,
+      name: "RVNL",
+      subProjectId: 1002,
+      stage: 2,
+      formsCompleted: 34,
+      totalForms: 34,
+      status: "pending-approval",
+      lastActivity: "2024-05-28",
+      stageApprovals: { 1: true, 2: false, 3: false },
+      submittedStages: { 1: true, 2: true, 3: false },
+    },
+    {
+      id: 7,
+      name: "Eastern Railway",
+      subProjectId: 1002,
+      stage: 1,
+      formsCompleted: 8,
+      totalForms: 17,
+      status: "in-progress",
+      lastActivity: "2024-06-01",
+      stageApprovals: { 1: false, 2: false, 3: false },
+      submittedStages: { 1: false, 2: false, 3: false },
+    },
+    // Companies for North Line Upgrade (subProjectId: 2001)
+    {
+      id: 8,
+      name: "RS Infra",
+      subProjectId: 2001,
+      stage: 3,
+      formsCompleted: 51,
+      totalForms: 51,
+      status: "completed",
+      lastActivity: "2024-06-03",
+      stageApprovals: { 1: true, 2: true, 3: true },
+      submittedStages: { 1: true, 2: true, 3: true },
+    },
+  ]
+
+  const mockSubmittedForms = [
+    // RVNL Phase 1 - Stage 1 Forms
+    {
+      id: 1,
+      companyId: 1,
+      stage: 1,
+      formName: "Technical Specifications Form",
+      submittedAt: "2024-06-15",
+      status: "pending-review",
+      data: {
+        transformerType: "Auto Transformer",
+        capacity: "100 MVA",
+        voltage: "132/33 kV",
+        frequency: "50 Hz",
+        cooling: "ONAN/ONAF",
+        tapChanger: "On Load",
+        bushingType: "Porcelain",
+        oilType: "Mineral Oil",
       },
-      {
-        id: 2,
-        name: "Traction transformer",
-        description: "Traction transformer department for railway systems",
-        icon: "🚊",
-        color: "#1E3A8A",
-        projects: [],
+    },
+    {
+      id: 2,
+      companyId: 1,
+      stage: 1,
+      formName: "Quality Assurance Form",
+      submittedAt: "2024-06-15",
+      status: "pending-review",
+      data: {
+        testingStandard: "IEC 60076",
+        qualityGrade: "Grade A",
+        inspectionLevel: "Level 2",
+        certificationRequired: "Yes",
+        witnessTest: "Customer Witness",
       },
-      {
-        id: 3,
-        name: "V Connected 63 MVA transformer",
-        description: "V Connected 63 MVA transformer department for high voltage systems",
-        icon: "🔌",
-        color: "#047857",
-        projects: [],
+    },
+    {
+      id: 3,
+      companyId: 1,
+      stage: 1,
+      formName: "Installation Requirements Form",
+      submittedAt: "2024-06-15",
+      status: "pending-review",
+      data: {
+        installationSite: "Outdoor",
+        foundationType: "Concrete",
+        accessRequirements: "Crane Access Required",
+        environmentalConditions: "Normal",
+        specialRequirements: "Seismic Zone IV",
       },
-    ]
-    setDepartments(defaultDepartments)
-  }, [])
+    },
+    // RVNL Phase 2 - Stage 2 Forms
+    {
+      id: 4,
+      companyId: 6,
+      stage: 2,
+      formName: "Manufacturing Process Form",
+      submittedAt: "2024-06-10",
+      status: "pending-review",
+      data: {
+        manufacturingStandard: "IEC 60076-1",
+        productionTimeline: "16 weeks",
+        qualityControlProcess: "ISO 9001:2015",
+        materialSpecification: "CRGO Steel",
+        windingMaterial: "Copper",
+      },
+    },
+    {
+      id: 5,
+      companyId: 6,
+      stage: 2,
+      formName: "Testing Protocol Form",
+      submittedAt: "2024-06-10",
+      status: "pending-review",
+      data: {
+        routineTests: "All IEC Tests",
+        typeTests: "Complete Type Tests",
+        specialTests: "Seismic Tests",
+        testingFacility: "NABL Accredited",
+        witnessRequirement: "Third Party",
+      },
+    },
+    // RS Infra North Line Upgrade - All Stages (Completed)
+    {
+      id: 6,
+      companyId: 8,
+      stage: 1,
+      formName: "Technical Specifications Form",
+      submittedAt: "2024-05-15",
+      status: "approved",
+      reviewedAt: "2024-05-16",
+      data: {
+        transformerType: "V Connected 63 MVA",
+        capacity: "63 MVA",
+        voltage: "220/33 kV",
+        frequency: "50 Hz",
+        cooling: "ONAF",
+      },
+    },
+    {
+      id: 7,
+      companyId: 8,
+      stage: 2,
+      formName: "Manufacturing Process Form",
+      submittedAt: "2024-05-20",
+      status: "approved",
+      reviewedAt: "2024-05-21",
+      data: {
+        manufacturingStandard: "IEC 60076-1",
+        productionTimeline: "20 weeks",
+        qualityControlProcess: "ISO 9001:2015",
+      },
+    },
+    {
+      id: 8,
+      companyId: 8,
+      stage: 3,
+      formName: "Final Inspection Form",
+      submittedAt: "2024-05-25",
+      status: "approved",
+      reviewedAt: "2024-05-26",
+      data: {
+        finalInspection: "Completed",
+        deliverySchedule: "2024-06-30",
+        warrantyPeriod: "2 Years",
+      },
+    },
+  ]
 
   // Load data from localStorage on component mount
   useEffect(() => {
+    setDepartments(defaultDepartments) // Departments are static
+
     const savedProjects = localStorage.getItem("etc_projects")
+    const savedSubProjects = localStorage.getItem("etc_sub_projects") // New localStorage key
     const savedCompanies = localStorage.getItem("etc_companies")
     const savedSubmittedForms = localStorage.getItem("etc_submitted_forms")
 
     if (savedProjects) {
       setProjects(JSON.parse(savedProjects))
     } else {
-      // Initialize with default projects for each department
-      const defaultProjects = [
-        {
-          id: 1,
-          name: "Smart City Infrastructure",
-          description: "Urban development project for smart city implementation",
-          status: "active",
-          companies: 3,
-          createdAt: "2024-01-15",
-          departmentId: 1,
-        },
-        {
-          id: 2,
-          name: "Green Energy Initiative",
-          description: "Renewable energy project for sustainable development",
-          status: "active",
-          companies: 3,
-          createdAt: "2024-02-01",
-          departmentId: 2,
-        },
-        {
-          id: 3,
-          name: "High Voltage Distribution",
-          description: "High voltage power distribution project",
-          status: "active",
-          companies: 3,
-          createdAt: "2024-02-15",
-          departmentId: 3,
-        },
-      ]
       setProjects(defaultProjects)
       localStorage.setItem("etc_projects", JSON.stringify(defaultProjects))
+    }
+
+    if (savedSubProjects) {
+      setSubProjects(JSON.parse(savedSubProjects))
+    } else {
+      setSubProjects(defaultSubProjects)
+      localStorage.setItem("etc_sub_projects", JSON.stringify(defaultSubProjects))
     }
 
     if (savedCompanies) {
       setCompanies(JSON.parse(savedCompanies))
     } else {
-      // Initialize with default companies for each project
-      const defaultCompanies = [
-        // Auto transformer department companies
-        {
-          id: 1,
-          name: "TCS (Tata Consultancy Services)",
-          projectId: 1,
-          stage: 1,
-          formsCompleted: 17,
-          totalForms: 17,
-          status: "pending-approval",
-          lastActivity: "2024-06-01",
-          stageApprovals: { 1: false, 2: false, 3: false },
-          submittedStages: { 1: true, 2: false, 3: false },
-        },
-        {
-          id: 2,
-          name: "IBM Corporation",
-          projectId: 1,
-          stage: 1,
-          formsCompleted: 8,
-          totalForms: 17,
-          status: "in-progress",
-          lastActivity: "2024-06-02",
-          stageApprovals: { 1: false, 2: false, 3: false },
-          submittedStages: { 1: false, 2: false, 3: false },
-        },
-        {
-          id: 3,
-          name: "HCL Technologies",
-          projectId: 1,
-          stage: 1,
-          formsCompleted: 12,
-          totalForms: 17,
-          status: "in-progress",
-          lastActivity: "2024-06-01",
-          stageApprovals: { 1: false, 2: false, 3: false },
-          submittedStages: { 1: false, 2: false, 3: false },
-        },
-        // Traction transformer department companies
-        {
-          id: 4,
-          name: "TCS (Tata Consultancy Services)",
-          projectId: 2,
-          stage: 2,
-          formsCompleted: 34,
-          totalForms: 34,
-          status: "pending-approval",
-          lastActivity: "2024-05-28",
-          stageApprovals: { 1: true, 2: false, 3: false },
-          submittedStages: { 1: true, 2: true, 3: false },
-        },
-        {
-          id: 5,
-          name: "IBM Corporation",
-          projectId: 2,
-          stage: 1,
-          formsCompleted: 8,
-          totalForms: 17,
-          status: "in-progress",
-          lastActivity: "2024-06-01",
-          stageApprovals: { 1: false, 2: false, 3: false },
-          submittedStages: { 1: false, 2: false, 3: false },
-        },
-        {
-          id: 6,
-          name: "HCL Technologies",
-          projectId: 2,
-          stage: 1,
-          formsCompleted: 2,
-          totalForms: 17,
-          status: "in-progress",
-          lastActivity: "2024-06-02",
-          stageApprovals: { 1: false, 2: false, 3: false },
-          submittedStages: { 1: false, 2: false, 3: false },
-        },
-        // V Connected 63 MVA transformer department companies
-        {
-          id: 7,
-          name: "TCS (Tata Consultancy Services)",
-          projectId: 3,
-          stage: 3,
-          formsCompleted: 51,
-          totalForms: 51,
-          status: "completed",
-          lastActivity: "2024-06-03",
-          stageApprovals: { 1: true, 2: true, 3: true },
-          submittedStages: { 1: true, 2: true, 3: true },
-        },
-        {
-          id: 8,
-          name: "IBM Corporation",
-          projectId: 3,
-          stage: 1,
-          formsCompleted: 7,
-          totalForms: 17,
-          status: "in-progress",
-          lastActivity: "2024-06-02",
-          stageApprovals: { 1: false, 2: false, 3: false },
-          submittedStages: { 1: false, 2: false, 3: false },
-        },
-        {
-          id: 9,
-          name: "HCL Technologies",
-          projectId: 3,
-          stage: 1,
-          formsCompleted: 11,
-          totalForms: 17,
-          status: "in-progress",
-          lastActivity: "2024-06-01",
-          stageApprovals: { 1: false, 2: false, 3: false },
-          submittedStages: { 1: false, 2: false, 3: false },
-        },
-      ]
       setCompanies(defaultCompanies)
       localStorage.setItem("etc_companies", JSON.stringify(defaultCompanies))
     }
 
-    // Load submitted forms with better persistence
     if (savedSubmittedForms) {
       setSubmittedForms(JSON.parse(savedSubmittedForms))
     } else {
-      // Initialize with mock submitted forms
-      const mockSubmittedForms = [
-        // TCS Auto Transformer - Stage 1 Forms
-        {
-          id: 1,
-          companyId: 1,
-          stage: 1,
-          formName: "Technical Specifications Form",
-          submittedAt: "2024-06-15",
-          status: "pending-review",
-          data: {
-            transformerType: "Auto Transformer",
-            capacity: "100 MVA",
-            voltage: "132/33 kV",
-            frequency: "50 Hz",
-            cooling: "ONAN/ONAF",
-            tapChanger: "On Load",
-            bushingType: "Porcelain",
-            oilType: "Mineral Oil",
-          },
-        },
-        {
-          id: 2,
-          companyId: 1,
-          stage: 1,
-          formName: "Quality Assurance Form",
-          submittedAt: "2024-06-15",
-          status: "pending-review",
-          data: {
-            testingStandard: "IEC 60076",
-            qualityGrade: "Grade A",
-            inspectionLevel: "Level 2",
-            certificationRequired: "Yes",
-            witnessTest: "Customer Witness",
-          },
-        },
-        {
-          id: 3,
-          companyId: 1,
-          stage: 1,
-          formName: "Installation Requirements Form",
-          submittedAt: "2024-06-15",
-          status: "pending-review",
-          data: {
-            installationSite: "Outdoor",
-            foundationType: "Concrete",
-            accessRequirements: "Crane Access Required",
-            environmentalConditions: "Normal",
-            specialRequirements: "Seismic Zone IV",
-          },
-        },
-        // TCS Traction Transformer - Stage 2 Forms
-        {
-          id: 4,
-          companyId: 4,
-          stage: 2,
-          formName: "Manufacturing Process Form",
-          submittedAt: "2024-06-10",
-          status: "pending-review",
-          data: {
-            manufacturingStandard: "IEC 60076-1",
-            productionTimeline: "16 weeks",
-            qualityControlProcess: "ISO 9001:2015",
-            materialSpecification: "CRGO Steel",
-            windingMaterial: "Copper",
-          },
-        },
-        {
-          id: 5,
-          companyId: 4,
-          stage: 2,
-          formName: "Testing Protocol Form",
-          submittedAt: "2024-06-10",
-          status: "pending-review",
-          data: {
-            routineTests: "All IEC Tests",
-            typeTests: "Complete Type Tests",
-            specialTests: "Seismic Tests",
-            testingFacility: "NABL Accredited",
-            witnessRequirement: "Third Party",
-          },
-        },
-        // TCS V Connected - All Stages (Completed)
-        {
-          id: 6,
-          companyId: 7,
-          stage: 1,
-          formName: "Technical Specifications Form",
-          submittedAt: "2024-05-15",
-          status: "approved",
-          reviewedAt: "2024-05-16",
-          data: {
-            transformerType: "V Connected 63 MVA",
-            capacity: "63 MVA",
-            voltage: "220/33 kV",
-            frequency: "50 Hz",
-            cooling: "ONAF",
-          },
-        },
-        {
-          id: 7,
-          companyId: 7,
-          stage: 2,
-          formName: "Manufacturing Process Form",
-          submittedAt: "2024-05-20",
-          status: "approved",
-          reviewedAt: "2024-05-21",
-          data: {
-            manufacturingStandard: "IEC 60076-1",
-            productionTimeline: "20 weeks",
-            qualityControlProcess: "ISO 9001:2015",
-          },
-        },
-        {
-          id: 8,
-          companyId: 7,
-          stage: 3,
-          formName: "Final Inspection Form",
-          submittedAt: "2024-05-25",
-          status: "approved",
-          reviewedAt: "2024-05-26",
-          data: {
-            finalInspection: "Completed",
-            deliverySchedule: "2024-06-30",
-            warrantyPeriod: "2 Years",
-          },
-        },
-      ]
       setSubmittedForms(mockSubmittedForms)
       localStorage.setItem("etc_submitted_forms", JSON.stringify(mockSubmittedForms))
     }
   }, [])
 
-  // Save to localStorage whenever data changes with unique keys
+  // Save to localStorage whenever data changes
   useEffect(() => {
-    if (projects.length > 0) {
-      localStorage.setItem("etc_projects", JSON.stringify(projects))
-    }
+    localStorage.setItem("etc_projects", JSON.stringify(projects))
   }, [projects])
 
   useEffect(() => {
-    if (companies.length > 0) {
-      localStorage.setItem("etc_companies", JSON.stringify(companies))
-    }
+    localStorage.setItem("etc_sub_projects", JSON.stringify(subProjects))
+  }, [subProjects])
+
+  useEffect(() => {
+    localStorage.setItem("etc_companies", JSON.stringify(companies))
   }, [companies])
 
   useEffect(() => {
-    if (submittedForms.length > 0) {
-      localStorage.setItem("etc_submitted_forms", JSON.stringify(submittedForms))
-    }
+    localStorage.setItem("etc_submitted_forms", JSON.stringify(submittedForms))
   }, [submittedForms])
 
   const handleCreateProject = () => {
@@ -377,19 +410,38 @@ const ETCAdminPanel = ({ user, selectedProject, onLogout, onProjectSelect, onCom
         name: newProject.name,
         description: newProject.description,
         status: "active",
-        companies: 3,
         createdAt: new Date().toISOString().split("T")[0],
         departmentId: selectedDepartment.id,
       }
 
       setProjects([...projects, project])
+      setNewProject({ name: "", description: "" })
+      setShowCreateProjectForm(false)
+      alert(`Main Project "${project.name}" created successfully in ${selectedDepartment.name}!`)
+    }
+  }
 
-      // Automatically add TCS, IBM, HCL companies for this project
+  const handleCreateSubProject = () => {
+    if (newSubProject.name && newSubProject.description && selectedMainProject) {
+      const subProjectId = Math.max(...subProjects.map((sp) => sp.id), 0) + 1
+
+      const subProject = {
+        id: subProjectId,
+        name: newSubProject.name,
+        description: newSubProject.description,
+        status: "active",
+        createdAt: new Date().toISOString().split("T")[0],
+        projectId: selectedMainProject.id,
+      }
+
+      setSubProjects([...subProjects, subProject])
+
+      // Automatically add the 5 new companies for this sub-project
       const newCompanies = [
         {
           id: Math.max(...companies.map((c) => c.id), 0) + 1,
-          name: "TCS (Tata Consultancy Services)",
-          projectId: projectId,
+          name: "RVNL",
+          subProjectId: subProjectId,
           stage: 1,
           formsCompleted: 0,
           totalForms: 17,
@@ -400,8 +452,8 @@ const ETCAdminPanel = ({ user, selectedProject, onLogout, onProjectSelect, onCom
         },
         {
           id: Math.max(...companies.map((c) => c.id), 0) + 2,
-          name: "IBM Corporation",
-          projectId: projectId,
+          name: "Eastern Railway",
+          subProjectId: subProjectId,
           stage: 1,
           formsCompleted: 0,
           totalForms: 17,
@@ -412,8 +464,32 @@ const ETCAdminPanel = ({ user, selectedProject, onLogout, onProjectSelect, onCom
         },
         {
           id: Math.max(...companies.map((c) => c.id), 0) + 3,
-          name: "HCL Technologies",
-          projectId: projectId,
+          name: "RS Infra",
+          subProjectId: subProjectId,
+          stage: 1,
+          formsCompleted: 0,
+          totalForms: 17,
+          status: "in-progress",
+          lastActivity: new Date().toISOString().split("T")[0],
+          stageApprovals: { 1: false, 2: false, 3: false },
+          submittedStages: { 1: false, 2: false, 3: false },
+        },
+        {
+          id: Math.max(...companies.map((c) => c.id), 0) + 4,
+          name: "Blue Star",
+          subProjectId: subProjectId,
+          stage: 1,
+          formsCompleted: 0,
+          totalForms: 17,
+          status: "in-progress",
+          lastActivity: new Date().toISOString().split("T")[0],
+          stageApprovals: { 1: false, 2: false, 3: false },
+          submittedStages: { 1: false, 2: false, 3: false },
+        },
+        {
+          id: Math.max(...companies.map((c) => c.id), 0) + 5,
+          name: "Track and Tower",
+          subProjectId: subProjectId,
           stage: 1,
           formsCompleted: 0,
           totalForms: 17,
@@ -425,10 +501,10 @@ const ETCAdminPanel = ({ user, selectedProject, onLogout, onProjectSelect, onCom
       ]
 
       setCompanies([...companies, ...newCompanies])
-      setNewProject({ name: "", description: "" })
-      setShowCreateForm(false)
+      setNewSubProject({ name: "", description: "" })
+      setShowCreateSubProjectForm(false)
       alert(
-        `Project "${project.name}" created successfully in ${selectedDepartment.name} with TCS, IBM, and HCL companies!`,
+        `Sub-project "${subProject.name}" created successfully under "${selectedMainProject.name}" with 5 companies!`,
       )
     }
   }
@@ -549,21 +625,29 @@ const ETCAdminPanel = ({ user, selectedProject, onLogout, onProjectSelect, onCom
     return "locked"
   }
 
-  const filteredProjects = selectedDepartment
-    ? projects.filter(
-        (project) =>
-          project.departmentId === selectedDepartment.id &&
-          project.name.toLowerCase().includes(searchTerm.toLowerCase()),
-      )
-    : []
-
-  const projectCompanies = selectedProject
-    ? companies.filter((company) => company.projectId === selectedProject.id)
-    : []
-
   const getDepartmentProjects = (departmentId) => {
     return projects.filter((project) => project.departmentId === departmentId)
   }
+
+  const getProjectSubProjects = (projectId) => {
+    return subProjects.filter((subProject) => subProject.projectId === projectId)
+  }
+
+  const getSubProjectCompanies = (subProjectId) => {
+    return companies.filter((company) => company.subProjectId === subProjectId)
+  }
+
+  const filteredProjects = selectedDepartment
+    ? getDepartmentProjects(selectedDepartment.id).filter((project) =>
+        project.name.toLowerCase().includes(searchTerm.toLowerCase()),
+      )
+    : []
+
+  const filteredSubProjects = selectedMainProject
+    ? getProjectSubProjects(selectedMainProject.id).filter((subProject) =>
+        subProject.name.toLowerCase().includes(searchTerm.toLowerCase()),
+      )
+    : []
 
   const currentStageForms = reviewMode
     ? submittedForms.filter(
@@ -575,17 +659,21 @@ const ETCAdminPanel = ({ user, selectedProject, onLogout, onProjectSelect, onCom
     ? submittedForms.filter((form) => form.companyId === selectedCompanyForReview.id)
     : []
 
-  const handleLogout = () => {
+  const handleLogoutAndClearData = () => {
     // Clear all ETC admin data on logout
     localStorage.removeItem("etc_projects")
+    localStorage.removeItem("etc_sub_projects")
     localStorage.removeItem("etc_companies")
     localStorage.removeItem("etc_submitted_forms")
 
     // Reset all states
     setProjects([])
+    setSubProjects([])
     setCompanies([])
     setSubmittedForms([])
     setSelectedDepartment(null)
+    setSelectedMainProject(null)
+    setSelectedSubProject(null)
     setSelectedCompanyForReview(null)
     setReviewMode(false)
     setShowSubmitterReview(false)
@@ -665,25 +753,29 @@ const ETCAdminPanel = ({ user, selectedProject, onLogout, onProjectSelect, onCom
             <div className="header-title">
               <h1>
                 {reviewMode
-                  ? `Review Stage ${currentStageReview} - ${selectedCompanyForReview.name}`
+                  ? `Review Stage ${currentStageReview} - ${selectedCompanyForReview?.name}`
                   : showSubmitterReview
-                    ? `Submitted Forms - ${selectedCompanyForReview.name}`
-                    : selectedProject
-                      ? `${selectedProject.name} - Companies`
-                      : selectedDepartment
-                        ? `${selectedDepartment.name} - Projects`
-                        : "ETC Admin Panel"}
+                    ? `Submitted Forms - ${selectedCompanyForReview?.name}`
+                    : selectedSubProject
+                      ? `${selectedSubProject.name} - Companies`
+                      : selectedMainProject
+                        ? `${selectedMainProject.name} - Sub-Projects`
+                        : selectedDepartment
+                          ? `${selectedDepartment.name} - Projects`
+                          : "ETC Admin Panel"}
               </h1>
               <p>
                 {reviewMode
                   ? "Review and approve/reject stage forms"
                   : showSubmitterReview
                     ? "View all submitted forms by company"
-                    : selectedProject
-                      ? "Manage companies and workflows"
-                      : selectedDepartment
-                        ? "Manage projects in department"
-                        : "Manage departments, projects and companies"}
+                    : selectedSubProject
+                      ? "Manage companies and their workflows"
+                      : selectedMainProject
+                        ? "Manage sub-projects under this project"
+                        : selectedDepartment
+                          ? "Manage projects in department"
+                          : "Manage departments, projects and companies"}
               </p>
             </div>
           </div>
@@ -691,7 +783,7 @@ const ETCAdminPanel = ({ user, selectedProject, onLogout, onProjectSelect, onCom
           {/* Desktop header right */}
           <div className="header-right desktop-only">
             <span className="user-badge">ETC Admin</span>
-            <button onClick={handleLogout} className="logout-btn">
+            <button onClick={handleLogoutAndClearData} className="logout-btn">
               🚪 Logout
             </button>
           </div>
@@ -701,7 +793,7 @@ const ETCAdminPanel = ({ user, selectedProject, onLogout, onProjectSelect, onCom
             <div className="mobile-menu-overlay" onClick={() => setIsMobileMenuOpen(false)}>
               <div className="mobile-menu" onClick={(e) => e.stopPropagation()}>
                 <div className="mobile-menu-header">
-                  <img src="/logo.png" alt="Vishvas Power" className="logo-small" />
+                  <img src="/placeholder.svg?height=32&width=32" alt="Vishvas Power" className="logo-small" />
                   <button className="mobile-menu-close" onClick={() => setIsMobileMenuOpen(false)}>
                     ×
                   </button>
@@ -710,7 +802,7 @@ const ETCAdminPanel = ({ user, selectedProject, onLogout, onProjectSelect, onCom
                   <div className="mobile-user-info">
                     <span className="user-badge">ETC Admin</span>
                   </div>
-                  <button onClick={handleLogout} className="mobile-logout-btn">
+                  <button onClick={handleLogoutAndClearData} className="mobile-logout-btn">
                     🚪 Logout
                   </button>
                 </div>
@@ -738,7 +830,7 @@ const ETCAdminPanel = ({ user, selectedProject, onLogout, onProjectSelect, onCom
               <div className="stage-info-card">
                 <h3>Stage {currentStageReview} Information</h3>
                 <p>
-                  <strong>Company:</strong> {selectedCompanyForReview.name}
+                  <strong>Company:</strong> {selectedCompanyForReview?.name}
                 </p>
                 <p>
                   <strong>Total Forms:</strong> {currentStageForms.length}
@@ -822,7 +914,7 @@ const ETCAdminPanel = ({ user, selectedProject, onLogout, onProjectSelect, onCom
             <div className="section-header">
               <div>
                 <h2>All Submitted Forms</h2>
-                <p>Review all forms submitted by {selectedCompanyForReview.name}</p>
+                <p>Review all forms submitted by {selectedCompanyForReview?.name}</p>
               </div>
               <button onClick={handleBackFromReview} className="back-btn">
                 ← Back to Companies
@@ -923,8 +1015,8 @@ const ETCAdminPanel = ({ user, selectedProject, onLogout, onProjectSelect, onCom
           <>
             <div className="section-header">
               <div>
-                <h2>Transformer Departments</h2>
-                <p>Select a department to manage projects and companies</p>
+                <h2>Transformer Categories</h2>
+                <p>Select a category to manage projects and sub-projects</p>
               </div>
             </div>
 
@@ -947,27 +1039,34 @@ const ETCAdminPanel = ({ user, selectedProject, onLogout, onProjectSelect, onCom
                     <p>{department.description}</p>
                     <div className="department-footer">
                       <span>📁 {departmentProjects.length} projects</span>
-                      <span>🏢 {departmentProjects.length * 3} companies</span>
+                      <span>
+                        🏢{" "}
+                        {departmentProjects.reduce((acc, proj) => {
+                          const subProjs = getProjectSubProjects(proj.id)
+                          return acc + subProjs.length * 5 // 5 companies per sub-project
+                        }, 0)}{" "}
+                        companies
+                      </span>
                     </div>
                   </div>
                 )
               })}
             </div>
           </>
-        ) : !selectedProject ? (
+        ) : !selectedMainProject ? (
           // Projects View for Selected Department
           <>
             <div className="section-header">
               <div>
                 <h2>Projects in {selectedDepartment.name}</h2>
-                <p>Create and manage projects for this department</p>
+                <p>Create and manage projects for this category</p>
               </div>
               <div className="section-actions">
-                <button onClick={() => setShowCreateForm(true)} className="create-btn">
+                <button onClick={() => setShowCreateProjectForm(true)} className="create-btn">
                   ➕ Create Project
                 </button>
                 <button onClick={() => setSelectedDepartment(null)} className="back-btn">
-                  ← Back to Departments
+                  ← Back to Categories
                 </button>
               </div>
             </div>
@@ -981,14 +1080,14 @@ const ETCAdminPanel = ({ user, selectedProject, onLogout, onProjectSelect, onCom
               />
             </div>
 
-            {showCreateForm && (
-              <div className="modal-overlay" onClick={() => setShowCreateForm(false)}>
+            {showCreateProjectForm && (
+              <div className="modal-overlay" onClick={() => setShowCreateProjectForm(false)}>
                 <div className="modal-content" onClick={(e) => e.stopPropagation()}>
                   <div className="modal-header">
-                    <img src="/logo.png" alt="Vishvas Power" className="logo-small" />
+                    <img src="/placeholder.svg?height=32&width=32" alt="Vishvas Power" className="logo-small" />
                     <h3>Create New Project in {selectedDepartment.name}</h3>
                   </div>
-                  <p>TCS, IBM, and HCL will be automatically added to this project</p>
+                  <p>Sub-projects and companies will be added later</p>
                   <div className="form-group">
                     <label>Project Name</label>
                     <input
@@ -1015,7 +1114,7 @@ const ETCAdminPanel = ({ user, selectedProject, onLogout, onProjectSelect, onCom
                     >
                       Create Project
                     </button>
-                    <button onClick={() => setShowCreateForm(false)} className="cancel-btn">
+                    <button onClick={() => setShowCreateProjectForm(false)} className="cancel-btn">
                       Cancel
                     </button>
                   </div>
@@ -1025,7 +1124,7 @@ const ETCAdminPanel = ({ user, selectedProject, onLogout, onProjectSelect, onCom
 
             <div className="projects-grid">
               {filteredProjects.map((project) => (
-                <div key={project.id} className="project-card" onClick={() => onProjectSelect(project)}>
+                <div key={project.id} className="project-card" onClick={() => setSelectedMainProject(project)}>
                   <div className="project-header">
                     <div className="project-icon" style={{ backgroundColor: selectedDepartment.color }}>
                       📁
@@ -1035,28 +1134,116 @@ const ETCAdminPanel = ({ user, selectedProject, onLogout, onProjectSelect, onCom
                   <h3>{project.name}</h3>
                   <p>{project.description}</p>
                   <div className="project-footer">
-                    <span>🏢 {project.companies} companies</span>
+                    <span>📂 {getProjectSubProjects(project.id).length} sub-projects</span>
                     <span>📅 {project.createdAt}</span>
                   </div>
                 </div>
               ))}
             </div>
           </>
-        ) : (
-          // Companies View for Selected Project
+        ) : !selectedSubProject ? (
+          // Sub-Projects View for Selected Main Project
           <>
             <div className="section-header">
               <div>
-                <h2>Companies in {selectedProject.name}</h2>
+                <h2>Sub-Projects in {selectedMainProject.name}</h2>
+                <p>Create and manage sub-projects for this main project</p>
+              </div>
+              <div className="section-actions">
+                <button onClick={() => setShowCreateSubProjectForm(true)} className="create-btn">
+                  ➕ Create Sub-Project
+                </button>
+                <button onClick={() => setSelectedMainProject(null)} className="back-btn">
+                  ← Back to Projects
+                </button>
+              </div>
+            </div>
+
+            <div className="search-bar">
+              <input
+                type="text"
+                placeholder="🔍 Search sub-projects..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
+            </div>
+
+            {showCreateSubProjectForm && (
+              <div className="modal-overlay" onClick={() => setShowCreateSubProjectForm(false)}>
+                <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+                  <div className="modal-header">
+                    <img src="/placeholder.svg?height=32&width=32" alt="Vishvas Power" className="logo-small" />
+                    <h3>Create New Sub-Project under {selectedMainProject.name}</h3>
+                  </div>
+                  <p>5 companies will be automatically added to this sub-project</p>
+                  <div className="form-group">
+                    <label>Sub-Project Name</label>
+                    <input
+                      type="text"
+                      placeholder="Enter sub-project name"
+                      value={newSubProject.name}
+                      onChange={(e) => setNewSubProject({ ...newSubProject, name: e.target.value })}
+                    />
+                  </div>
+                  <div className="form-group">
+                    <label>Description</label>
+                    <textarea
+                      placeholder="Enter sub-project description"
+                      value={newSubProject.description}
+                      onChange={(e) => setNewSubProject({ ...newSubProject, description: e.target.value })}
+                      rows="3"
+                    />
+                  </div>
+                  <div className="modal-actions">
+                    <button
+                      onClick={handleCreateSubProject}
+                      className="submit-btn"
+                      disabled={!newSubProject.name || !newSubProject.description}
+                    >
+                      Create Sub-Project
+                    </button>
+                    <button onClick={() => setShowCreateSubProjectForm(false)} className="cancel-btn">
+                      Cancel
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            <div className="projects-grid">
+              {filteredSubProjects.map((subProject) => (
+                <div key={subProject.id} className="project-card" onClick={() => setSelectedSubProject(subProject)}>
+                  <div className="project-header">
+                    <div className="project-icon" style={{ backgroundColor: selectedDepartment.color }}>
+                      📦
+                    </div>
+                    <span className={`status-badge ${getStatusColor(subProject.status)}`}>{subProject.status}</span>
+                  </div>
+                  <h3>{subProject.name}</h3>
+                  <p>{subProject.description}</p>
+                  <div className="project-footer">
+                    <span>🏢 {getSubProjectCompanies(subProject.id).length} companies</span>
+                    <span>📅 {subProject.createdAt}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </>
+        ) : (
+          // Companies View for Selected Sub-Project
+          <>
+            <div className="section-header">
+              <div>
+                <h2>Companies in {selectedSubProject.name}</h2>
                 <p>Manage companies and their workflows</p>
               </div>
-              <button onClick={() => onProjectSelect(null)} className="back-btn">
-                ← Back to Projects
+              <button onClick={() => setSelectedSubProject(null)} className="back-btn">
+                ← Back to Sub-Projects
               </button>
             </div>
 
             <div className="companies-grid">
-              {projectCompanies.map((company) => (
+              {getSubProjectCompanies(selectedSubProject.id).map((company) => (
                 <div key={company.id} className="company-card">
                   <div className="company-header">
                     <div className="company-icon" style={{ backgroundColor: "#1E3A8A" }}>

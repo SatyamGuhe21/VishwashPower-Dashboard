@@ -55,8 +55,23 @@ const FormStage = ({ stage, stageData, onStageComplete, onApproval, isETCAdmin, 
     currentForm <= stageData.total && stageData.completed < stageData.total && !stageData.approved
   const allFormsCompleted = stageData.completed === stageData.total
   const isPendingApproval = allFormsCompleted && !stageData.approved && stageData.status === "pending-approval"
+  const isLastFormInStage = currentForm === stageData.total
 
   const handleFormSubmit = () => {
+    // Validate signatures before submission
+    const vpesSignatureKey = `form${currentForm}_vpes`
+    const customerSignatureKey = `form${currentForm}_customer`
+
+    if (!signatures[vpesSignatureKey]) {
+      alert("❌ VPES Signature is required to submit this form.")
+      return
+    }
+
+    if (isLastFormInStage && !signatures[customerSignatureKey]) {
+      alert("❌ Customer Signature is required on the last form of the stage.")
+      return
+    }
+
     try {
       const newCompletedCount = stageData.completed + 1
 
@@ -136,7 +151,7 @@ const FormStage = ({ stage, stageData, onStageComplete, onApproval, isETCAdmin, 
   }
 
   // Digital Signature Component
-  const DigitalSignature = ({ signatureType, label }) => {
+  const DigitalSignature = ({ signatureType, label, required }) => {
     const canvasRef = useRef(null)
     const [isDrawing, setIsDrawing] = useState(false)
     const [hasSignature, setHasSignature] = useState(false)
@@ -253,7 +268,10 @@ const FormStage = ({ stage, stageData, onStageComplete, onApproval, isETCAdmin, 
 
     return (
       <div className="digital-signature-container">
-        <label className="signature-label">{label}:</label>
+        <label className="signature-label">
+          {label}
+          {required && <span style={{ color: "red", marginLeft: "5px" }}>*</span>}
+        </label>
         <div className="signature-pad-container">
           <canvas
             ref={canvasRef}
@@ -298,6 +316,42 @@ const FormStage = ({ stage, stageData, onStageComplete, onApproval, isETCAdmin, 
               </span>
             )}
           </div>
+        </div>
+      </div>
+    )
+  }
+
+  // Digital Signature Section Component
+  const SignatureSection = () => {
+    const isCustomerSignatureRequired = isLastFormInStage
+
+    return (
+      <div
+        className="signature-section"
+        style={{ marginTop: "30px", padding: "20px", border: "1px solid #ddd", borderRadius: "8px" }}
+      >
+        <h4 style={{ marginBottom: "20px", textAlign: "center" }}>Digital Signatures</h4>
+        <div
+          className="signature-row"
+          style={{ display: "flex", gap: "40px", justifyContent: "space-around", flexWrap: "wrap" }}
+        >
+          <DigitalSignature signatureType="vpes" label="VPES Signature:" required={true} />
+          {isLastFormInStage && (
+            <DigitalSignature
+              signatureType="customer"
+              label="Customer Signature:"
+              required={isCustomerSignatureRequired}
+            />
+          )}
+        </div>
+        <div className="signature-date" style={{ marginTop: "20px", textAlign: "center" }}>
+          <label style={{ marginRight: "10px", fontWeight: "bold" }}>Date:</label>
+          <input
+            type="date"
+            value={formData[`form${currentForm}_signature_date`] || ""}
+            onChange={(e) => setFormData({ ...formData, [`form${currentForm}_signature_date`]: e.target.value })}
+            style={{ padding: "8px", border: "1px solid #ccc", borderRadius: "4px" }}
+          />
         </div>
       </div>
     )
@@ -531,7 +585,7 @@ const FormStage = ({ stage, stageData, onStageComplete, onApproval, isETCAdmin, 
           </tbody>
         </table>
       </div>
-      <SignatureSection label1="For VPES:" label2="For Customer:" />
+      <SignatureSection />
     </div>
   )
 
@@ -585,7 +639,7 @@ const FormStage = ({ stage, stageData, onStageComplete, onApproval, isETCAdmin, 
             </tr>
           </tbody>
         </table>
-        <SignatureSection label1="Sign. VPES" label2="Sign. CUSTOMER" />
+        <SignatureSection />
       </div>
 
       {/* Second IR Value Section */}
@@ -631,7 +685,7 @@ const FormStage = ({ stage, stageData, onStageComplete, onApproval, isETCAdmin, 
             </tr>
           </tbody>
         </table>
-        <SignatureSection label1="Sign. VPES" label2="Sign. CUSTOMER" />
+        <SignatureSection />
       </div>
 
       {/* Third IR Value Section */}
@@ -683,7 +737,7 @@ const FormStage = ({ stage, stageData, onStageComplete, onApproval, isETCAdmin, 
             </tr>
           </tbody>
         </table>
-        <SignatureSection label1="Sign. VPES" label2="Sign. CUSTOMER" />
+        <SignatureSection />
       </div>
     </div>
   )
@@ -760,7 +814,7 @@ const FormStage = ({ stage, stageData, onStageComplete, onApproval, isETCAdmin, 
           </tbody>
         </table>
       </div>
-      <SignatureSection label1="For VPES: -" label2="Customer: -" />
+      <SignatureSection />
     </div>
   )
 
@@ -911,7 +965,7 @@ const FormStage = ({ stage, stageData, onStageComplete, onApproval, isETCAdmin, 
         </tbody>
       </table>
 
-      <SignatureSection label1="VPES" label2="Customer" />
+      <SignatureSection />
     </div>
   )
 
@@ -985,7 +1039,7 @@ const FormStage = ({ stage, stageData, onStageComplete, onApproval, isETCAdmin, 
           </tbody>
         </table>
       </div>
-      <SignatureSection label1="For VPES: -" label2="Customer: -" />
+      <SignatureSection />
     </div>
   )
 
@@ -1081,7 +1135,7 @@ const FormStage = ({ stage, stageData, onStageComplete, onApproval, isETCAdmin, 
         </tbody>
       </table>
 
-      <SignatureSection label1="For VPES:-" label2="For Customer:-" />
+      <SignatureSection />
     </div>
   )
 
@@ -1174,7 +1228,7 @@ const FormStage = ({ stage, stageData, onStageComplete, onApproval, isETCAdmin, 
         </tbody>
       </table>
 
-      <SignatureSection label1="VPES" label2="Customer" />
+      <SignatureSection />
     </div>
   )
 
@@ -1290,7 +1344,7 @@ const FormStage = ({ stage, stageData, onStageComplete, onApproval, isETCAdmin, 
         </tbody>
       </table>
 
-      <SignatureSection label1="For VPES:-" label2="For Customer:-" />
+      <SignatureSection />
     </div>
   )
 
@@ -1385,7 +1439,7 @@ const FormStage = ({ stage, stageData, onStageComplete, onApproval, isETCAdmin, 
         </tbody>
       </table>
 
-      <SignatureSection label1="VPES" label2="Customer" />
+      <SignatureSection />
     </div>
   )
 
@@ -1480,7 +1534,7 @@ const FormStage = ({ stage, stageData, onStageComplete, onApproval, isETCAdmin, 
         </tbody>
       </table>
 
-      <SignatureSection label1="VPES" label2="Customer" />
+      <SignatureSection />
     </div>
   )
 
@@ -1573,7 +1627,7 @@ const FormStage = ({ stage, stageData, onStageComplete, onApproval, isETCAdmin, 
         </tbody>
       </table>
 
-      <SignatureSection label1="VPES" label2="Customer" />
+      <SignatureSection />
     </div>
   )
 
@@ -1668,7 +1722,7 @@ const FormStage = ({ stage, stageData, onStageComplete, onApproval, isETCAdmin, 
         </tbody>
       </table>
 
-      <SignatureSection label1="VPES" label2="Customer" />
+      <SignatureSection />
     </div>
   )
 
@@ -1742,7 +1796,7 @@ const FormStage = ({ stage, stageData, onStageComplete, onApproval, isETCAdmin, 
         </tbody>
       </table>
 
-      <SignatureSection label1="For VPES" label2="For Customer" />
+      <SignatureSection />
     </div>
   )
 
@@ -1794,7 +1848,7 @@ const FormStage = ({ stage, stageData, onStageComplete, onApproval, isETCAdmin, 
         </tbody>
       </table>
 
-      <SignatureSection label1="VPES" label2="Customer" />
+      <SignatureSection />
     </div>
   )
 
@@ -1874,7 +1928,7 @@ const FormStage = ({ stage, stageData, onStageComplete, onApproval, isETCAdmin, 
         </tbody>
       </table>
 
-      <SignatureSection label1="Project Manager - VPES" label2="Customer Representative" />
+      <SignatureSection />
     </div>
   )
 
@@ -1985,7 +2039,7 @@ const FormStage = ({ stage, stageData, onStageComplete, onApproval, isETCAdmin, 
         </tbody>
       </table>
 
-      <SignatureSection label1="Documentation Reviewer" label2="Quality Assurance Manager" />
+      <SignatureSection />
     </div>
   )
 
@@ -2116,7 +2170,7 @@ const FormStage = ({ stage, stageData, onStageComplete, onApproval, isETCAdmin, 
         />
       </div>
 
-      <SignatureSection label1="QA Manager" label2="Technical Director" />
+      <SignatureSection />
     </div>
   )
 
@@ -2251,33 +2305,7 @@ const FormStage = ({ stage, stageData, onStageComplete, onApproval, isETCAdmin, 
         />
       </div>
 
-      <SignatureSection label1="Assembly Inspector" label2="Project Manager" />
-    </div>
-  )
-
-  // Digital Signature Section Component
-  const SignatureSection = ({ label1 = "VPES", label2 = "Customer" }) => (
-    <div
-      className="signature-section"
-      style={{ marginTop: "30px", padding: "20px", border: "1px solid #ddd", borderRadius: "8px" }}
-    >
-      <h4 style={{ marginBottom: "20px", textAlign: "center" }}>Digital Signatures</h4>
-      <div
-        className="signature-row"
-        style={{ display: "flex", gap: "40px", justifyContent: "space-around", flexWrap: "wrap" }}
-      >
-        <DigitalSignature signatureType="vpes" label={`${label1} Signature`} />
-        <DigitalSignature signatureType="customer" label={`${label2} Signature`} />
-      </div>
-      <div className="signature-date" style={{ marginTop: "20px", textAlign: "center" }}>
-        <label style={{ marginRight: "10px", fontWeight: "bold" }}>Date:</label>
-        <input
-          type="date"
-          value={formData[`form${currentForm}_signature_date`] || ""}
-          onChange={(e) => setFormData({ ...formData, [`form${currentForm}_signature_date`]: e.target.value })}
-          style={{ padding: "8px", border: "1px solid #ccc", borderRadius: "4px" }}
-        />
-      </div>
+      <SignatureSection />
     </div>
   )
 
